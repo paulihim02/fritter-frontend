@@ -44,6 +44,11 @@ router.post(
   }
 );
 
+router.get("/session", async (req: Request, res: Response) => {
+  const user = await UserCollection.findOneByUserId(req.session.userId);
+  return res.send({ user });
+});
+
 /**
  * Sign out a user
  *
@@ -154,7 +159,7 @@ router.post(
 /**
  * Update a user's profile.
  *
- * @name PUT /api/users
+ * @name PATCH /api/users
  *
  * @param {string} username - The user's new username
  * @param {string} password - The user's new password
@@ -163,7 +168,7 @@ router.post(
  * @throws {409} - If username already taken
  * @throws {400} - If username or password are not of the correct format
  */
-router.put(
+router.patch(
   "/",
   [
     userValidator.isUserLoggedIn,

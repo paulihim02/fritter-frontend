@@ -5,6 +5,7 @@ import * as util from "./util";
 import * as userValidator from "../user/middleware";
 import * as followValidator from "./middleware";
 import FollowModel from "./model";
+import UserCollection from "../user/collection";
 
 const router = express.Router();
 
@@ -30,16 +31,29 @@ router.get(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.query;
-    console.log("username is", username);
-    if (username !== undefined) {
-      return next();
-    }
+    // console.log("username is", username);
+    // if (username !== undefined) {
+    //   return next();
+    // }
 
     const allFollows = await FollowCollection.findAll();
     console.log("all follows", allFollows, await FollowModel.find({}));
     const response = allFollows.map(util.constructFollowResponse);
     return res.status(200).json(response);
-  },
+  }
+  // [userValidator.isUsernameExists],
+  // async (req: Request, res: Response) => {
+  //   const { username } = req.query;
+  //   const follows = await FollowCollection.findAllByUsername(
+  //     username as string
+  //   );
+  //   const response = follows.map(util.constructFollowResponse);
+  //   return res.status(200).json(response);
+  // }
+);
+
+router.get(
+  "/:username",
   [userValidator.isUsernameExists],
   async (req: Request, res: Response) => {
     const { username } = req.query;
@@ -64,12 +78,15 @@ router.get(
  */
 router.post(
   "/",
-  [userValidator.isUserLoggedIn, userValidator.isUserIdExists],
+  [userValidator.isUserLoggedIn, userValidator.isUsernameExists],
   async (req: Request, res: Response, next: NextFunction) => {
     console.log("creating follow");
-    const ID = req.body.userId;
-    await FollowCollection.deleteManyReverse(ID); // remove duplicates
-    const follow = await FollowCollection.addOne(req.session.userId, ID);
+    const username = req.body.username;
+    const user = await UserCollection.findOneByUsername(username);
+
+    await FollowCollection.deleteMany(user._id); // remove duplicates
+    const follow = await FollowCollection.addOne(req.session.userId, user._id);
+    console.log("follow is", follow);
 
     return res.status(201).json({
       message: `follow »» successfully created`,
