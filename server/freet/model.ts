@@ -1,6 +1,6 @@
-import type {Types} from 'mongoose';
-import {Schema, model} from 'mongoose';
-import type {User} from '../user/model';
+import type { Types, PopulatedDoc, Document } from "mongoose";
+import { Schema, model } from "mongoose";
+import type { User } from "../user/model";
 
 /**
  * This file defines the properties stored in a Freet
@@ -10,18 +10,14 @@ import type {User} from '../user/model';
 // Type definition for Freet on the backend
 export type Freet = {
   _id: Types.ObjectId; // MongoDB assigns each object this ID on creation
-  authorId: Types.ObjectId;
-  dateCreated: Date;
+  authorID: Types.ObjectId;
   content: string;
+  timeStamp: Date;
   dateModified: Date;
 };
 
-export type PopulatedFreet = {
-  _id: Types.ObjectId; // MongoDB assigns each object this ID on creation
-  authorId: User;
-  dateCreated: Date;
-  content: string;
-  dateModified: Date;
+export type PopulatedFreet = Freet & {
+  authorID: User;
 };
 
 // Mongoose schema definition for interfacing with a MongoDB table
@@ -29,28 +25,21 @@ export type PopulatedFreet = {
 // type given by the type property, inside MongoDB
 const FreetSchema = new Schema<Freet>({
   // The author userId
-  authorId: {
+  authorID: {
     // Use Types.ObjectId outside of the schema
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'User'
-  },
-  // The date the freet was created
-  dateCreated: {
-    type: Date,
-    required: true
+    ref: "User",
   },
   // The content of the freet
   content: {
     type: String,
-    required: true
+    required: true,
   },
-  // The date the freet was modified
-  dateModified: {
-    type: Date,
-    required: true
-  }
+
+  timeStamp: { type: Date, required: true, default: Date.now },
+  dateModified: { type: Date, required: true, default: Date.now },
 });
 
-const FreetModel = model<Freet>('Freet', FreetSchema);
+const FreetModel = model<Freet>("Freet", FreetSchema);
 export default FreetModel;

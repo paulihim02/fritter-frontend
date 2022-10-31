@@ -1,6 +1,7 @@
-import type {HydratedDocument, Types} from 'mongoose';
-import type {User} from './model';
-import UserModel from './model';
+import { HydratedDocument, Types } from "mongoose";
+import type { User } from "./model";
+import UserModel from "./model";
+import { deduplicate } from "./util";
 
 /**
  * This file contains a class with functionality to interact with users stored
@@ -18,12 +19,11 @@ class UserCollection {
    * @param {string} password - The password of the user
    * @return {Promise<HydratedDocument<User>>} - The newly created user
    */
-  static async addOne(username: string, password: string): Promise<HydratedDocument<User>> {
-    const dateJoined = new Date();
-
-    const user = new UserModel({username, password, dateJoined});
-    await user.save(); // Saves user to MongoDB
-    return user;
+  static async addOne(
+    username: string,
+    password: string
+  ): Promise<HydratedDocument<User>> {
+    return new UserModel({ username, password }).save().then((user) => user);
   }
 
   /**
@@ -32,8 +32,10 @@ class UserCollection {
    * @param {string} userId - The userId of the user to find
    * @return {Promise<HydratedDocument<User>> | Promise<null>} - The user with the given username, if any
    */
-  static async findOneByUserId(userId: Types.ObjectId | string): Promise<HydratedDocument<User>> {
-    return UserModel.findOne({_id: userId});
+  static async findOneByUserId(
+    userId: Types.ObjectId | string
+  ): Promise<HydratedDocument<User>> {
+    return UserModel.findOne({ _id: userId });
   }
 
   /**
@@ -42,8 +44,12 @@ class UserCollection {
    * @param {string} username - The username of the user to find
    * @return {Promise<HydratedDocument<User>> | Promise<null>} - The user with the given username, if any
    */
-  static async findOneByUsername(username: string): Promise<HydratedDocument<User>> {
-    return UserModel.findOne({username: new RegExp(`^${username.trim()}$`, 'i')});
+  static async findOneByUsername(
+    username: string
+  ): Promise<HydratedDocument<User>> {
+    return UserModel.findOne({
+      username: new RegExp(`^${username.trim()}$`, "i"),
+    });
   }
 
   /**
@@ -53,10 +59,13 @@ class UserCollection {
    * @param {string} password - The password of the user to find
    * @return {Promise<HydratedDocument<User>> | Promise<null>} - The user with the given username, if any
    */
-  static async findOneByUsernameAndPassword(username: string, password: string): Promise<HydratedDocument<User>> {
+  static async findOneByUsernameAndPassword(
+    username: string,
+    password: string
+  ): Promise<HydratedDocument<User>> {
     return UserModel.findOne({
-      username: new RegExp(`^${username.trim()}$`, 'i'),
-      password
+      username: new RegExp(`^${username.trim()}$`, "i"),
+      password,
     });
   }
 
@@ -67,18 +76,35 @@ class UserCollection {
    * @param {Object} userDetails - An object with the user's updated credentials
    * @return {Promise<HydratedDocument<User>>} - The updated user
    */
-  static async updateOne(userId: Types.ObjectId | string, userDetails: {password?: string; username?: string}): Promise<HydratedDocument<User>> {
-    const user = await UserModel.findOne({_id: userId});
-    if (userDetails.password) {
-      user.password = userDetails.password;
+  static async updateOne(
+    userId: Types.ObjectId | string,
+    userDetails: {
+      password?: string;
+      username?: string;
+      followers?: Types.ObjectId[];
+      following?: Types.ObjectId[];
+    }
+  ): Promise<HydratedDocument<User>> {
+    const user = await UserModel.findOne({ _id: userId });
+
+    const { password, username, followers, following } = userDetails;
+
+    if (password) {
+      user.password = password as string;
     }
 
-    if (userDetails.username) {
-      user.username = userDetails.username;
+    if (username) {
+      user.username = username as string;
     }
 
-    await user.save();
-    return user;
+    if (followers) {
+      user.followers = deduplicate(user.followers, followers);
+    }
+    if (following) {
+      user.following = deduplicate(user.following, following);
+    }
+
+    return await user.save();
   }
 
   /**
@@ -88,7 +114,7 @@ class UserCollection {
    * @return {Promise<Boolean>} - true if the user has been deleted, false otherwise
    */
   static async deleteOne(userId: Types.ObjectId | string): Promise<boolean> {
-    const user = await UserModel.deleteOne({_id: userId});
+    const user = await UserModel.deleteOne({ _id: userId });
     return user !== null;
   }
 }
