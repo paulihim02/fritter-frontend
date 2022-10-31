@@ -3,14 +3,8 @@
 
 <template>
   <form @submit.prevent="submit">
-    <input
-      v-model="value"
-      type="text"
-      :placeholder="placeholder"
-    >
-    <button
-      type="submit"
-    >
+    <input v-model="value" type="text" :placeholder="placeholder" />
+    <button type="submit">
       {{ button }}
     </button>
     <section class="alerts">
@@ -27,31 +21,31 @@
 
 <script>
 export default {
-  name: 'InlineForm',
+  name: "InlineForm",
   props: {
     placeholder: {
       type: String,
-      default: ''
+      default: "",
     },
     button: {
       type: String,
-      default: 'Submit'
-    }
+      default: "Submit",
+    },
   },
   data() {
-    return {value: '', alerts: {}};
-  }
+    return { value: "", alerts: {} };
+  },
 };
 </script>
 
 <style scoped>
 form {
-    display: flex;
-    position: relative;
+  display: flex;
+  position: relative;
 }
 
 input {
-    padding: 0 5px;
-    min-width: 200px;
+  padding: 0 5px;
+  min-width: 200px;
 }
 </style>
