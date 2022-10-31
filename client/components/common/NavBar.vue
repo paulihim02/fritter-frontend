@@ -14,8 +14,8 @@
         Account
       </router-link>
       <router-link v-else to="/login"> Login </router-link>
+      <router-link to="/follow"> Follow </router-link>
     </div>
-    <div>Follow</div>
     <section class="alerts">
       <article
         v-for="(status, alert, index) in $store.state.alerts"
