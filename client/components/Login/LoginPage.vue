@@ -19,14 +19,14 @@
 </template>
 
 <script>
-import RegisterForm from '@/components/Login/RegisterForm.vue';
-import LoginForm from '@/components/Login/LoginForm.vue';
+import RegisterForm from "@/components/Login/RegisterForm.vue";
+import LoginForm from "@/components/Login/LoginForm.vue";
 
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   components: {
     RegisterForm,
-    LoginForm
-  }
+    LoginForm,
+  },
 };
 </script>
