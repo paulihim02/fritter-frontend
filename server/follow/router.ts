@@ -4,7 +4,7 @@ import FollowCollection from "./collection";
 import * as util from "./util";
 import * as userValidator from "../user/middleware";
 import * as followValidator from "./middleware";
-import FollowModel from "./model";
+import FollowModel, { PopulatedFollow } from "./model";
 import UserCollection from "../user/collection";
 
 const router = express.Router();
@@ -23,44 +23,35 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
  *
  * @return {FollowResponse[]} - A list of all the follows sorted in descending
  *                      order by timestamp
- * @throws {400} - If ownerID is not given
- * @throws {404} - If no user has given ownerID
+ * @throws {400} - If ownerId is not given
+ * @throws {404} - If no user has given ownerId
  *
  */
-router.get(
-  "/",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { username } = req.query;
-    // console.log("username is", username);
-    // if (username !== undefined) {
-    //   return next();
-    // }
-
-    const allFollows = await FollowCollection.findAll();
-    console.log("all follows", allFollows, await FollowModel.find({}));
-    const response = allFollows.map(util.constructFollowResponse);
-    return res.status(200).json(response);
-  }
-  // [userValidator.isUsernameExists],
-  // async (req: Request, res: Response) => {
-  //   const { username } = req.query;
-  //   const follows = await FollowCollection.findAllByUsername(
-  //     username as string
-  //   );
-  //   const response = follows.map(util.constructFollowResponse);
-  //   return res.status(200).json(response);
-  // }
-);
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  const allFollows = await FollowCollection.findAll();
+  const response = allFollows.map(util.constructFollowResponse);
+  return res.status(200).json(response);
+});
 
 router.get(
   "/:username",
-  [userValidator.isUsernameExists],
+  [userValidator.isUserLoggedIn, userValidator.isUsernameExists],
   async (req: Request, res: Response) => {
-    const { username } = req.query;
+    const { username } = req.params;
+
     const follows = await FollowCollection.findAllByUsername(
       username as string
     );
-    const response = follows.map(util.constructFollowResponse);
+    const followedBy: PopulatedFollow[] =
+      await FollowCollection.findAllFollowersById(req.session.userId);
+
+    const response = {
+      message: "successfully got followers",
+      user: req.session.userId,
+      following: follows.map((follow) => follow.personTwoId),
+      followers: followedBy.map((followBy) => followBy.personOneId),
+    };
+
     return res.status(200).json(response);
   }
 );
@@ -80,13 +71,15 @@ router.post(
   "/",
   [userValidator.isUserLoggedIn, userValidator.isUsernameExists],
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("creating follow");
     const username = req.body.username;
     const user = await UserCollection.findOneByUsername(username);
 
+    if (user._id.toString() === req.session.userId.toString()) {
+      return res.status(400).json({ error: "You cannot follow yourself!" });
+    }
+
     await FollowCollection.deleteMany(user._id); // remove duplicates
     const follow = await FollowCollection.addOne(req.session.userId, user._id);
-    console.log("follow is", follow);
 
     return res.status(201).json({
       message: `follow »» successfully created`,
@@ -98,23 +91,26 @@ router.post(
 /**
  * Delete a follow
  *
- * @name DELETE /api/follows/:followID
+ * @name DELETE /api/follows/:username
  *
  * @return {string} - A success message
  * @throws {403} - If the user is not logged in or is not the author of
  *                 the freet
- * @throws {404} - If the freetId is not valid
+ * @throws {404} - If the username is not valid
  */
 router.delete(
-  "/:followId",
-  [
-    userValidator.isUserLoggedIn,
-    followValidator.isValidModifier,
-    followValidator.isFollowIdExists,
-  ],
+  "/:username",
+  [userValidator.isUsernameExists, userValidator.isUserLoggedIn],
   async (req: Request, res: Response) => {
-    console.log("deleting follow", req.params.followId);
-    await FollowCollection.deleteOne(req.params.followId);
+    const username = req.params.username;
+
+    const user = await UserCollection.findOneByUsername(username);
+    if (user._id.toString() === req.session.userId.toString()) {
+      return res.status(400).json({ error: "You cannot unfollow yourself!" });
+    }
+
+    await FollowCollection.deleteManyReverse(user._id); // remove duplicates
+
     res.status(200).json({
       message: "successfully deleted follow.",
     });

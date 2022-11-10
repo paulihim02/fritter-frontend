@@ -5,7 +5,7 @@ import * as FreetValidator from "../freet/middleware";
 import CommentCollection from "./collection";
 
 /**
- * Checks if a freet with freetId is req.params exists
+ * Checks if a freet with freetItemId is req.params exists
  */
 const isValidCommentExists = async (
   req: Request,
@@ -13,44 +13,37 @@ const isValidCommentExists = async (
   next: NextFunction
 ) => {
   const { freetComment } = req.query;
-  const { freetId } = req.body;
-  const commentId =
-    req.body.commentId || req.params.commentId || req.query.commentId;
+  const { freetItemId } = req.body;
+  const commentItemId =
+    req.body.commentItemId ||
+    req.params.commentItemId ||
+    req.query.commentItemId;
 
-  console.log(
-    "free comment",
-    freetComment,
-    commentId,
-    Types.ObjectId.isValid(commentId)
-  );
-
-  if (!freetComment && !Types.ObjectId.isValid(commentId)) {
-    return res
-      .status(404)
-      .json({ message: "cannot find comment with this id" });
+  if (!freetComment && !Types.ObjectId.isValid(commentItemId)) {
+    return res.status(404).json({ error: "cannot find comment with this id" });
   }
 
-  if (freetComment && !Types.ObjectId.isValid(freetId)) {
-    return res.status(404).json({ message: "cannot find freet with this id" });
+  if (freetComment && !Types.ObjectId.isValid(freetItemId)) {
+    return res.status(404).json({ error: "cannot find freet with this id" });
   }
 
   // commenting on freet
   if (freetComment) {
-    const freet = await FreetCollection.findOne(freetId);
+    const freet = await FreetCollection.findOne(freetItemId);
     return freet
       ? next()
       : res
           .status(404)
-          .json({ message: "freet could not be found with this Id" });
+          .json({ error: "freet could not be found with this Id" });
   }
 
-  const comment = await CommentCollection.findOne(commentId);
+  const comment = await CommentCollection.findOne(commentItemId);
 
   return comment
     ? next()
     : res
         .status(404)
-        .json({ message: "comment could not be found with this ID" });
+        .json({ error: "comment could not be found with this ID" });
 };
 
 /**
@@ -68,22 +61,24 @@ const isValidCommentContent = (
 };
 
 /**
- * Checks if the current user is the author of the freet whose freetId is in req.params
+ * Checks if the current user is the author of the freet whose freetItemId is in req.params
  */
 const isValidCommentModifier = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const commentId =
-    req.body.commentId || req.query.commentId || req.params.commentId;
+  const commentItemId =
+    req.body.commentItemId ||
+    req.query.commentItemId ||
+    req.params.commentItemId;
 
-  const comment = await CommentCollection.findOne(commentId);
+  const comment = await CommentCollection.findOne(commentItemId);
 
   if (comment.authorId.toString() !== req.session.userId) {
     return res
       .status(403)
-      .json({ message: "you cannot edit someone else's comment" });
+      .json({ error: "you cannot edit someone else's comment" });
   }
 
   return next();

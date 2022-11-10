@@ -23,14 +23,14 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get(
-  "/:username",
-  [userValidator.isUsernameExists],
+  "/:freetId",
+  [freetValidator.isFreetExists],
   async (req: Request, res: Response, next: NextFunction) => {
-    const { username } = req.params;
-    const vally = await VallyCollection.findAllByUsername(username);
+    const { freetId } = req.params;
+    const vally = await VallyCollection.findAllByFreetId(freetId);
 
     return res.status(201).json({
-      message: "successly got vally for user",
+      message: "successly got vally for freet",
       vally: vally.map(util.constructVallyResponse),
     });
   }
@@ -53,7 +53,7 @@ router.post(
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     const { freetId, points } = req.body;
-    console.log(freetId, points);
+
     const vally = await VallyCollection.addOne(
       freetId,
       req.session.userId,
@@ -98,7 +98,6 @@ router.delete(
     const { vallyId } = req.params;
 
     await VallyCollection.deleteOne(vallyId);
-
     return res.status(200).json({ message: "vally successfully deleted!" });
   }
 );

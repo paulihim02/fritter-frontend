@@ -67,7 +67,7 @@ class CircleMeCollection {
       await CircleMeModel.find({}).populate("circleId freetId");
 
     const filteredCircles = circles.filter(
-      (circle) => circle.circleId.ownerID.toString() === ownerId.toString()
+      (circle) => circle.circleId.ownerId.toString() === ownerId.toString()
     );
 
     return filteredCircles;

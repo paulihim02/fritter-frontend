@@ -5,8 +5,8 @@ import { PopulatedFollow, Follow } from "./model";
 // Update this if you add a property to the Freet type!
 type FollowResponse = {
   _id: string;
-  user: string;
-  following: string;
+  user: string | any;
+  following: string | any;
   timeStamp: string;
 };
 
@@ -31,8 +31,8 @@ const constructFollowResponse = (
 ): FollowResponse => {
   return {
     _id: follow._id.toString(),
-    user: follow.personOneId.toString(),
-    following: follow.personTwoId.username.toString(),
+    user: follow.personOneId,
+    following: follow.personTwoId,
     timeStamp: formatDate(follow.timeStamp),
   };
 };

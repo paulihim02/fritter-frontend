@@ -20,6 +20,7 @@ export type Refreet = {
 
 export type PopulatedRefreet = Refreet & {
   freetId: Freet;
+  refreeterId: User;
 };
 
 // Mongoose schema definition for interfacing with a MongoDB table

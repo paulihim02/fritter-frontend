@@ -9,7 +9,15 @@ import FreetModel from "./model";
 const router = express.Router();
 
 router.use("/", async (req: Request, res: Response, next: NextFunction) => {
-  await FreetModel.deleteMany({ authorID: null });
+  const freetsWithDeletedAuthors = (await FreetCollection.findAll()).filter(
+    (freet) => !freet.authorID
+  );
+
+  const freetsToDelete = freetsWithDeletedAuthors.map((freet) =>
+    FreetModel.deleteOne({ _id: freet._id })
+  );
+
+  await Promise.all(freetsToDelete);
 
   return next();
 });
@@ -21,16 +29,16 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
  *
  * @return {FreetResponse[]} - A list of all the freets sorted in descending
  *                      order by date modified
- * @throws {400} - If ownerID is not given
- * @throws {404} - If no user has given ownerID
+ * @throws {400} - If ownerId is not given
+ * @throws {404} - If no user has given ownerId
  *
  */
 router.get(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.query;
-    console.log("username is", username);
-    if (username !== undefined) {
+
+    if (username) {
       return next();
     }
 
@@ -67,6 +75,30 @@ router.post(
 
     res.status(201).json({
       message: "Your freet was created successfully.",
+      freet: util.constructFreetResponse(freet),
+    });
+  }
+);
+
+/**
+ * gets a specific freet with ID.
+ *
+ * @name POST /api/freets/freetId
+ *
+ * @param {string} content - The content of the freet
+ * @return {FreetResponse} - The created freet
+ * @throws {403} - If the user is not logged in
+ * @throws {400} - If the freet content is empty or a stream of empty spaces
+ * @throws {413} - If the freet content is more than 140 characters long
+ */
+router.get(
+  "/:freetId",
+  [userValidator.isUserLoggedIn],
+  async (req: Request, res: Response) => {
+    const freet = await FreetCollection.findOne(req.params.freetId);
+
+    return res.status(201).json({
+      message: "found freet.",
       freet: util.constructFreetResponse(freet),
     });
   }

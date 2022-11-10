@@ -32,7 +32,10 @@ class CommentCollection {
       freetItemId,
       commentItemId,
     });
+    console.log("add one pre save", comment);
     await comment.save(); // Saves freet to MongoDB
+    console.log("add one post save");
+
     return comment.populate("freetItemId commentItemId authorId");
   }
 
@@ -46,8 +49,42 @@ class CommentCollection {
     commentId: Types.ObjectId | string
   ): Promise<HydratedDocument<PopulatedComment>> {
     return CommentModel.findOne({ _id: commentId }).populate(
-      "freetItemId commentItemId"
+      "freetItemId commentItemId authorId"
     );
+  }
+
+  /**
+   * Find comment by freetId
+   *
+   * @param {string} freetItemId - The freetId to find
+   * @return {Promise<HydratedDocument<Comment>> | Promise<null> } - comment with the given freetId, if any
+   */
+  static async findAllByFreetItemId(
+    freetItemId: Types.ObjectId | string
+  ): Promise<HydratedDocument<PopulatedComment>[]> {
+    const comments: HydratedDocument<PopulatedComment>[] =
+      await CommentModel.find({
+        freetItemId,
+      }).populate("freetItemId commentItemId authorId");
+
+    return comments;
+  }
+
+  /**
+   * Find comment by commentId
+   *
+   * @param {string} commentId - The commentId to find
+   * @return {Promise<HydratedDocument<Comment>> | Promise<null> } - comment with the given freetId, if any
+   */
+  static async findAllByCommentItemId(
+    commentItemId: Types.ObjectId | string
+  ): Promise<HydratedDocument<PopulatedComment>[]> {
+    const comments: HydratedDocument<PopulatedComment>[] =
+      await CommentModel.find({
+        commentItemId,
+      }).populate("freetItemId commentItemId authorId");
+
+    return comments;
   }
 
   /**

@@ -12,22 +12,12 @@ const isFreetExists = async (
 ) => {
   const ID = req.params.freetId || req.body.freetId || req.query.freetId;
   const validFormat = Types.ObjectId.isValid(ID);
-  console.log(
-    "checking freet exists",
-    req.body,
-    req.params,
-    req.query,
-    ID,
-    validFormat
-  );
 
   const freet = validFormat ? await FreetCollection.findOne(ID) : "";
 
   if (!freet) {
     res.status(404).json({
-      error: {
-        freetNotFound: `Freet with this ID does not exist.`,
-      },
+      error: `Freet with this ID does not exist.`,
     });
     return;
   }
@@ -45,12 +35,12 @@ const isValidFreetContent = (
   next: NextFunction,
   nonFreet?: { type: string }
 ) => {
-  const { content } = req.body as { content: string };
+  const { content } = req.body;
   if (!content.trim()) {
     res.status(400).json({
       error: `${
         nonFreet ? nonFreet.type : "Freet"
-      }content must be at least one character long.`,
+      } content must be at least one character long.`,
     });
     return;
   }

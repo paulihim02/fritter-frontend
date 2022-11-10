@@ -79,7 +79,6 @@ router.post(
     freetValidator.isFreetExists,
     freetValidator.isValidFreetModifier,
     circleValidator.isCircleExists,
-    circleValidator.isAllowedToUpdateCircle,
     circleMeValidator.isAllowedToMakeCircleMe,
   ],
   async (req: Request, res: Response, next: NextFunction) => {

@@ -19,7 +19,7 @@ const isAllowedToMakeCircleMe = async (
 
   return circleCount > 0
     ? res.status(400).json({
-        message:
+        error:
           "cannot add circle to circleMe; circle already exists in circleMe",
       })
     : next();
@@ -36,11 +36,10 @@ const isAllowedToUpdateCircle = async (
   const { circleMeId } = req.body;
 
   const circleMe = await CircleMeCollection.findOne(circleMeId);
-  console.log("id is", circleMeId, circleMe, req.session.userId);
-  return circleMe.circleId.ownerID.toString() === req.session.userId
+  return circleMe.circleId.ownerId.toString() === req.session.userId
     ? next()
     : res.status(400).json({
-        message: "you're not allowed to update other people's circleMe's!",
+        error: "you're not allowed to update other people's circleMe's!",
       });
 };
 
@@ -51,12 +50,11 @@ const isCircleMeExists = async (
 ) => {
   const circleMeId =
     req.body.circleMeId || req.query.circleMeId || req.params.circleMeId;
-  console.log("heree3");
   return Types.ObjectId.isValid(circleMeId)
     ? !!(await CircleMeCollection.findOne(circleMeId))
       ? next()
-      : res.status(404).json({ message: "circle could not be found" })
-    : res.status(400).json({ message: "circleMeId is not a valid ID" });
+      : res.status(404).json({ error: "circle could not be found" })
+    : res.status(400).json({ error: "circleMeId is not a valid ID" });
 };
 
 const isFreetExistsCircleMe = async (
@@ -73,7 +71,7 @@ const isFreetExistsCircleMe = async (
   return circleMe.freetId._id.toString() === freet._id.toString()
     ? next()
     : res.status(400).json({
-        message: "this freet is not included in this circleMe",
+        error: "this freet is not included in this circleMe",
       });
 };
 

@@ -10,7 +10,15 @@ import * as util from "./util";
 const router = express.Router();
 
 router.use("/", async (req: Request, res: Response, next: NextFunction) => {
-  await RefreetModel.deleteMany({ freetId: null }); // we clear our refreets for freets that were deleted in the past
+  const toRemove = (await RefreetCollection.findAll()).filter((refreet) => {
+    return !refreet.refreeterId || !refreet.freetId;
+  });
+
+  console.log("toremove is'", toRemove);
+  await Promise.all(
+    toRemove.map((refreet: any) => RefreetCollection.deleteOne(refreet._id))
+  );
+
   return next();
 });
 
@@ -21,23 +29,25 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
  *
  * @return {RefreetResponse[]} - A list of all the refreets sorted in descending
  *                      order by date modified
- * @throws {400} - If ownerID is not given
- * @throws {404} - If no user has given ownerID
+ * @throws {400} - If ownerId is not given
+ * @throws {404} - If no user has given ownerId
  *
  */
 router.get(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.query;
-    console.log("username is", username);
+
     if (username !== undefined) {
       return next();
     }
 
     const allRefreets = await RefreetCollection.findAll();
-    console.log("all refreets", allRefreets);
+
     const response = allRefreets.map(util.constructRefreetResponse);
-    return res.status(200).json(response);
+    return res
+      .status(200)
+      .json({ message: "successfully refreeted", refreets: response });
   },
   [userValidator.isUsernameExists],
   async (req: Request, res: Response) => {
@@ -46,7 +56,9 @@ router.get(
       username as string
     );
     const response = refreets.map(util.constructRefreetResponse);
-    return res.status(200).json(response);
+    return res
+      .status(200)
+      .json({ message: "successfully refreeted", refreets: response });
   }
 );
 
@@ -86,7 +98,7 @@ router.post(
 /**
  * edit a refreet.
  *
- * @name POST /api/refreets/:freet_id
+ * @name PATCH /api/refreets/:freet_id
  *
  * @param {string} caption - The caption of the refreet
  * @return {RefreetResponse} - The updated refreet
@@ -94,7 +106,7 @@ router.post(
  * @throws {400} - If refreet caption is empty or a stream of empty spaces
  * @throws {413} - If refreet caption is more than 140 characters long
  */
-router.put(
+router.patch(
   "/:refreetID",
   [
     userValidator.isUserLoggedIn,
@@ -102,8 +114,6 @@ router.put(
     refreetValidator.isRefreetExists,
   ],
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("updating refreet", req.params);
-
     const { refreetID } = req.params;
     const updatedRefreet = await RefreetCollection.updateOne(
       refreetID,
@@ -135,7 +145,6 @@ router.delete(
     refreetValidator.isRefreetExists,
   ],
   async (req: Request, res: Response) => {
-    console.log("deleting refreet");
     await RefreetCollection.deleteOne(req.params.refreetID);
     res.status(200).json({
       message: "Your freet was deleted successfully.",

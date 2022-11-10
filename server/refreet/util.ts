@@ -5,9 +5,8 @@ import { PopulatedRefreet, Refreet } from "./model";
 
 // Update this if you add a property to the Freet type!
 type RefreetResponse = {
-  _id: string;
-  freetId: string;
-  originalAuthor: string;
+  originalAuthor: any;
+  refreeter: any;
   caption: string;
   timeStamp: string;
   dateModified: string;
@@ -40,9 +39,8 @@ const constructRefreetResponse = (
 
   return {
     ...refreetCopy,
-    _id: refreetCopy._id.toString(),
-    freetId: refreetCopy.freetId._id.toString(),
-    originalAuthor: refreetCopy.freetId.authorID.toString(),
+    refreeter: refreetCopy.refreeterId,
+    originalAuthor: refreetCopy.freetId,
     timeStamp: formatDate(refreetCopy.timeStamp),
     dateModified: formatDate(refreetCopy.dateModified),
   };

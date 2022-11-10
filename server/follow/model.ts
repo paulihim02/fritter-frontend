@@ -13,6 +13,7 @@ export type Follow = {
 };
 
 export type PopulatedFollow = Follow & {
+  personOneId: User;
   personTwoId: User;
 };
 

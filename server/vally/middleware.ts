@@ -39,7 +39,7 @@ const isVallyNotExist = async (
   return !vally
     ? next()
     : res.status(400).json({
-        message: "this vally already exists. do you want to edit it?",
+        error: "this vally already exists. do you want to edit it?",
       });
 };
 
@@ -53,7 +53,7 @@ const isValidVallyId = async (
   return Types.ObjectId.isValid(vallyId)
     ? next()
     : res.status(400).json({
-        message: "vallyId is not a valid vally Id",
+        error: "vallyId is not a valid vally Id",
       });
 };
 
@@ -66,7 +66,7 @@ const isValidVallyScore = (req: Request, res: Response, next: NextFunction) => {
   return -5 <= points && points <= 5
     ? next()
     : res.status(400).json({
-        message: "vally points are outside of accepted ranges (-5 to 5)",
+        error: "vally points are outside of accepted ranges (-5 to 5)",
       });
 };
 
@@ -84,9 +84,7 @@ const isValidVallyModifier = async (
 
   return vally.userId._id.toString() === req.session.userId
     ? next()
-    : res
-        .status(403)
-        .json({ message: "you cannot modify another user's vally" });
+    : res.status(403).json({ error: "you cannot modify another user's vally" });
 };
 
 export {

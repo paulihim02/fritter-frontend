@@ -4,9 +4,11 @@ import { PopulatedShare } from "./model";
 
 // Update this if you add a property to the Freet type!
 type ShareResponse = {
-  _id: string;
-  freetId: string;
+  _id: any;
+  freetId: any;
+  sharedById: any;
   freetContent: string;
+  audienceId: any;
   sharedWith: string;
   sharedBy: string;
 };
@@ -28,12 +30,14 @@ const formatDate = (date: Date): string =>
  * @returns {ShareResponse} - The share object formatted for the frontend
  */
 const constructShareResponse = (
-  share: HydratedDocument<PopulatedShare>
+  share: HydratedDocument<PopulatedShare> | any
 ): ShareResponse => {
-  const { freetId, audienceId, sharedById } = share;
+  const { freetId, audienceId, sharedById, _id } = share;
   return {
-    _id: share._id.toString(),
-    freetId: freetId._id.toString(),
+    _id,
+    freetId: share.freetId,
+    sharedById: share.sharedById,
+    audienceId: share.audienceId,
     freetContent: freetId.content,
     sharedWith: audienceId.username,
     sharedBy: sharedById.username,

@@ -68,6 +68,32 @@ class FollowCollection {
   }
 
   /**
+   * Get all the followed by a username
+   *
+   * @param {string} username
+   * @return {Promise<HydratedDocument<PopulatedFollow>[]>} - An array of all of the follows
+   */
+  static async findAllFollowersByUsername(
+    username: string
+  ): Promise<Array<HydratedDocument<PopulatedFollow>>> {
+    const user = await UserCollection.findOneByUsername(username);
+
+    return FollowModel.find({ personTwoId: user._id }).populate("personOneId");
+  }
+
+  /**
+   * Get all the followed by a ID
+   *
+   * @param {string} username
+   * @return {Promise<HydratedDocument<PopulatedFollow>[]>} - An array of all of the follows
+   */
+  static async findAllFollowersById(
+    id: string
+  ): Promise<Array<HydratedDocument<PopulatedFollow>>> {
+    return FollowModel.find({ personTwoId: id }).populate("personOneId");
+  }
+
+  /**
    * Delete a follow with given followID.
    *
    * @param {string} followID - The followID of freet to delete

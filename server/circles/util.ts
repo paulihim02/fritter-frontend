@@ -7,8 +7,8 @@ import { User } from "../user/model";
 type CircleResponse = {
   _id: Types.ObjectId; // MongoDB assigns each object this ID on creation
   rank: number;
-  ownerID: string; // owner of circle
-  userIDs: Types.ObjectId[];
+  ownerId: string; // owner of circle
+  userId: Types.ObjectId;
 };
 
 /**
@@ -31,10 +31,10 @@ const constructCircleResponse = (
     }),
   };
 
-  console.log(circleCopy.ownerID);
+  console.log(circleCopy.ownerId);
   return {
     ...circleCopy,
-    ownerID: JSON.stringify(circleCopy.ownerID).replace("\\", ""),
+    ownerId: JSON.stringify(circleCopy.ownerId).replace("\\", ""),
   };
 };
 

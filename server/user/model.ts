@@ -11,9 +11,6 @@ export type User = {
   _id: Types.ObjectId; // MongoDB assigns each object this ID on creation
   username: string;
   password: string;
-  following: Types.ObjectId[];
-  followers: Types.ObjectId[];
-  freets: Types.ObjectId[];
   dateJoined: Date;
 };
 
@@ -37,15 +34,6 @@ const UserSchema = new Schema<User>({
     required: true,
     default: Date.now,
   },
-  followers: [
-    { type: Schema.Types.ObjectId, required: true, default: [], ref: "User" },
-  ],
-  following: [
-    { type: Schema.Types.ObjectId, required: true, default: [], ref: "User" },
-  ],
-  freets: [
-    { type: Schema.Types.ObjectId, required: true, default: [], ref: "Freet" },
-  ],
 });
 
 const UserModel = model<User>("User", UserSchema);

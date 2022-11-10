@@ -46,7 +46,7 @@ const isShareNotExists = async (
   return !(await isShareExists(req, res, next, true))
     ? next()
     : res.status(400).json({
-        message: "this share already exists. do you want to edit it?",
+        error: "this share already exists",
       });
 };
 
@@ -60,7 +60,7 @@ const isNotShareCycle = async (
     req.body.audienceId || req.params.audienceId || req.query.audienceId;
 
   return audienceId === req.session.userId
-    ? res.status(400).json({ message: "cannot share something with yourself!" })
+    ? res.status(400).json({ error: "cannot share to yourself!" })
     : next();
 };
 
@@ -74,7 +74,7 @@ const isValidShareId = async (
   return Types.ObjectId.isValid(shareId)
     ? next()
     : res.status(400).json({
-        message: "shareId is not a valid Id",
+        error: "shareId is not a valid Id",
       });
 };
 
@@ -89,9 +89,7 @@ const isValidShareModifier = async (
 
   return share.sharedById._id.toString() === req.session.userId
     ? next()
-    : res
-        .status(403)
-        .json({ message: "you cannot modify another user's share" });
+    : res.status(403).json({ error: "you cannot modify another user's share" });
 };
 
 export {

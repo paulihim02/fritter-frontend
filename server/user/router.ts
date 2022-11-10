@@ -5,6 +5,8 @@ import UserCollection from "./collection";
 import * as userValidator from "../user/middleware";
 import * as util from "./util";
 import { Types } from "mongoose";
+import UserModel from "./model";
+import CircleCollection from "../circles/collection";
 
 const router = express.Router();
 
@@ -47,6 +49,16 @@ router.post(
 router.get("/session", async (req: Request, res: Response) => {
   const user = await UserCollection.findOneByUserId(req.session.userId);
   return res.send({ user });
+});
+
+router.get("/", async (req: Request, res: Response) => {
+  const { filter } = req.query;
+
+  const users = !filter
+    ? await UserModel.find({})
+    : await UserModel.find({ username: new RegExp("^" + filter) });
+
+  res.status(201).json({ message: "retrieved session", users: users });
 });
 
 /**
@@ -95,63 +107,11 @@ router.post(
       req.body.username,
       req.body.password
     );
+
     req.session.userId = user._id.toString();
     res.status(201).json({
       message: `Your account was created successfully. You have been logged in as ${user.username}`,
       user: util.constructUserResponse(user),
-    });
-  }
-);
-
-/**
- * Follow a user
- *
- * @name PUT /api/users/follow
- *
- * @param {string | Types.ObjectId} nameOrID - The user's new username
- * @return {UserResponse} - The updated user
- * @throws {403} - If action is not allowed
- * @throws {404} - If user cannot be identified
- */
-router.post(
-  "/follow",
-  [userValidator.isUserLoggedIn],
-  async (req: Request, res: Response) => {
-    // first update the person the user is trying to follow so if they don't exist, we catch it
-    console.log("following a user", req.body);
-
-    const { follower } = req.body;
-
-    let otherUser;
-
-    try {
-      otherUser =
-        (await UserCollection.findOneByUsername(follower)) ||
-        (await UserCollection.findOneByUserId(follower));
-    } catch (e) {
-      return res.status(404).json({
-        message: "the user you're trying to follow cannot be found",
-      });
-    }
-
-    if (otherUser._id.toString() === req.session.userId.toString()) {
-      return res.status(403).json({
-        message: "no matter how cool you are, you can't follow yourself!",
-      });
-    }
-
-    // go ahead and update users both ways
-    const updates = [
-      UserCollection.updateOne(req.session.userId, {
-        following: [otherUser._id],
-      }),
-      UserCollection.updateOne(otherUser._id, { followers: [otherUser._id] }),
-    ];
-
-    await Promise.all(updates);
-    res.status(200).json({
-      message: "You're now a fan!",
-      updatedProfile: util.constructUserResponse(await updates[0]), // await for typechecking :()
     });
   }
 );

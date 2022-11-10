@@ -8,12 +8,23 @@ import ShareCollection from "./collection";
 
 const router = express.Router();
 
+router.use("/", async (req: Request, res: Response, next: NextFunction) => {
+  const toRemove = (await ShareCollection.findAll()).filter((share) => {
+    return !share.freetId || !share.audienceId || !share.sharedById;
+  });
+  await Promise.all(
+    toRemove.map((share: any) => ShareCollection.deleteOne(share._id))
+  );
+
+  return next();
+});
+
 /** gets all share */
 router.get("/", async (req: Request, res: Response) => {
   return await ShareCollection.findAll()
     .then((share) => {
       const response = share.map(util.constructShareResponse);
-      return res.status(200).json(response);
+      return res.status(200).json({ message: "success", shares: response });
     })
     .catch((e) =>
       res.status(500).json({
@@ -27,11 +38,12 @@ router.get(
   [userValidator.isUsernameExists],
   async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.params;
+
     const share = await ShareCollection.findAllByUsername(username);
 
     return res.status(201).json({
       message: "successly got share by user",
-      share: share.map(util.constructShareResponse),
+      shares: share.map(util.constructShareResponse),
     });
   }
 );
@@ -63,7 +75,7 @@ router.post(
 
     return res.status(200).json({
       message: "successfully added share",
-      share: util.constructShareResponse(share),
+      shares: util.constructShareResponse(share),
     });
   }
 );

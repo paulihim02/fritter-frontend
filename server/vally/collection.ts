@@ -106,6 +106,18 @@ class VallyCollection {
   }
 
   /**
+   * Get all the freets in by given freetId
+   *
+   * @param {string} username - The username of author of the vally
+   * @return {Promise<HydratedDocument<PopulatedVally>[]>} - An array of all of the vallys
+   */
+  static async findAllByFreetId(
+    freetId: string
+  ): Promise<Array<HydratedDocument<PopulatedVally>>> {
+    return VallyModel.find({ freetId }).populate("freetId userId");
+  }
+
+  /**
    * Update a vally with the new points
    *
    * @param {string} points - The points that should be the updated vally

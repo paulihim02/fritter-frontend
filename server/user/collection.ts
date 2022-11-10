@@ -1,7 +1,7 @@
 import { HydratedDocument, Types } from "mongoose";
+import CircleCollection from "../circles/collection";
 import type { User } from "./model";
 import UserModel from "./model";
-import { deduplicate } from "./util";
 
 /**
  * This file contains a class with functionality to interact with users stored
@@ -23,7 +23,18 @@ class UserCollection {
     username: string,
     password: string
   ): Promise<HydratedDocument<User>> {
-    return new UserModel({ username, password }).save().then((user) => user);
+    const user = new UserModel({ username, password })
+      .save()
+      .then((user) => user);
+
+    // const circles = [];
+    // for (let i = 1; i <= 3; i++) {
+    //   circles.push(CircleCollection.addOne((await user)._id, i));
+    // }
+
+    // await Promise.all(circles);
+
+    return user;
   }
 
   /**
@@ -81,13 +92,11 @@ class UserCollection {
     userDetails: {
       password?: string;
       username?: string;
-      followers?: Types.ObjectId[];
-      following?: Types.ObjectId[];
     }
   ): Promise<HydratedDocument<User>> {
     const user = await UserModel.findOne({ _id: userId });
 
-    const { password, username, followers, following } = userDetails;
+    const { password, username } = userDetails;
 
     if (password) {
       user.password = password as string;
@@ -95,13 +104,6 @@ class UserCollection {
 
     if (username) {
       user.username = username as string;
-    }
-
-    if (followers) {
-      user.followers = deduplicate(user.followers, followers);
-    }
-    if (following) {
-      user.following = deduplicate(user.following, following);
     }
 
     return await user.save();

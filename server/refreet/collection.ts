@@ -31,7 +31,7 @@ class RefreetCollection {
       refreeterId,
     });
     await refreet.save(); // Saves freet to MongoDB
-    return refreet.populate("freetId");
+    return refreet.populate("freetId refreeterId");
   }
 
   /**
@@ -43,7 +43,9 @@ class RefreetCollection {
   static async findOne(
     freetId: Types.ObjectId | string
   ): Promise<HydratedDocument<PopulatedRefreet>> {
-    return RefreetModel.findOne({ _id: freetId }).populate("freetId");
+    return await RefreetModel.findOne({ _id: freetId }).populate(
+      "freetId refreeterId"
+    );
   }
 
   /**
@@ -53,7 +55,9 @@ class RefreetCollection {
    */
   static async findAll(): Promise<Array<HydratedDocument<PopulatedRefreet>>> {
     // Retrieves freets and sorts them from most to least recent
-    return RefreetModel.find({}).sort({ timeStamp: -1 }).populate("freetId");
+    return await RefreetModel.find({})
+      .sort({ timeStamp: -1 })
+      .populate("freetId refreeterId");
   }
 
   /**
@@ -68,7 +72,9 @@ class RefreetCollection {
     const author = await UserCollection.findOneByUsername(username);
     console.log("finding by username");
 
-    return RefreetModel.find({ refreeterId: author._id }).populate("freetId");
+    return await RefreetModel.find({ refreeterId: author._id }).populate(
+      "freetId refreeterId"
+    );
   }
 
   /**
@@ -86,18 +92,18 @@ class RefreetCollection {
     refreet.caption = caption;
     refreet.dateModified = new Date();
     await refreet.save();
-    return refreet.populate("freetId");
+    return refreet.populate("freetId refreeterId");
   }
 
   /**
    * Delete a refreet with given freetId.
    *
-   * @param {string} freetId - The freetId of freet to delete
+   * @param {string} refreetId - The refreetId of freet to delete
    * @return {Promise<Boolean>} - true if the freet has been deleted, false otherwise
    */
-  static async deleteOne(freetId: Types.ObjectId | string): Promise<boolean> {
-    const freet = await RefreetModel.deleteOne({ _id: freetId });
-    return freet !== null;
+  static async deleteOne(refreetId: Types.ObjectId | string): Promise<boolean> {
+    const refreet = await RefreetModel.deleteOne({ _id: refreetId });
+    return refreet !== null;
   }
 
   /**
