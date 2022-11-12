@@ -20,18 +20,47 @@ router.use("/", async (req: Request, res: Response, next: NextFunction) => {
 });
 
 /** gets all share */
-router.get("/", async (req: Request, res: Response) => {
-  return await ShareCollection.findAll()
-    .then((share) => {
-      const response = share.map(util.constructShareResponse);
-      return res.status(200).json({ message: "success", shares: response });
-    })
-    .catch((e) =>
-      res.status(500).json({
-        error: `Encounted the following error \n${e}. Please try again later`,
+router.get(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { username, sharedWith } = req.query;
+
+    if (username) {
+      return next();
+    }
+    console.log("finding all");
+
+    return await ShareCollection.findAll()
+      .then((share) => {
+        const response = share.map(util.constructShareResponse);
+        return res.status(200).json({ message: "success", shares: response });
       })
-    );
-});
+      .catch((e) =>
+        res.status(500).json({
+          error: `Encounted the following error \n${e}. Please try again later`,
+        })
+      );
+  },
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { username, sharedWith } = req.query;
+
+    if (sharedWith) {
+      const shar = (await ShareCollection.findAllAudienceIdFromUsername(
+        username as string
+      )) as any;
+      return res
+        .status(200)
+        .json({ shares: shar.map(util.constructShareResponse) });
+    }
+
+    const share = await ShareCollection.findAllByUsername(username as string);
+
+    return res.status(201).json({
+      message: "successly got share by user",
+      shares: share.map(util.constructShareResponse),
+    });
+  }
+);
 
 router.get(
   "/:username",

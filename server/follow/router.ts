@@ -113,6 +113,7 @@ router.delete(
 
     res.status(200).json({
       message: "successfully deleted follow.",
+      removed: true,
     });
   }
 );

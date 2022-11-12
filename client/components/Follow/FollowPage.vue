@@ -1,19 +1,29 @@
 <template>
   <main>
-    <h1>Follow Someone</h1>
-    <section>
-      <FollowForm />
-    </section>
+    username: <b-input type="text" v-model="value"> </b-input
+    ><button type="submit" @click="submit()">Submit</button>
   </main>
 </template>
 
 <script>
-import FollowForm from "@/components/Follow/FollowForm.vue";
-
 export default {
   name: "FollowPage",
-  components: {
-    FollowForm,
+  data() {
+    return { value: "" };
+  },
+  methods: {
+    submit() {
+      fetch(`/api/follows`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: this.value }),
+        credentials: "same-origin", // Sends express-session credentials with request
+      }).then((result) => {});
+    },
+  },
+
+  beforeCreate() {
+    this.$store.commit("refreshFollow");
   },
 };
 </script>

@@ -6,6 +6,7 @@ import type { Freet, PopulatedFreet } from "../freet/model";
 type FreetResponse = {
   _id: string;
   author: string;
+  authorId: any;
   content: string;
   timeStamp: string;
   dateModified: string;
@@ -42,6 +43,7 @@ const constructFreetResponse = (
     ...freetCopy,
     _id: freetCopy._id.toString(),
     author: authorID.username.toString(),
+    authorId: authorID._id,
     timeStamp: formatDate(freet.timeStamp),
     dateModified: formatDate(freet.dateModified),
   };

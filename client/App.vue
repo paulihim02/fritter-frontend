@@ -3,12 +3,19 @@
     <header>
       <NavBar />
     </header>
-    <router-view />
+    <router-view :key="$route.fullPath" />
   </div>
 </template>
 
 <script>
 import NavBar from "@/components/common/NavBar.vue";
+import Vue from "vue";
+import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
 
 export default {
   name: "App",
@@ -20,12 +27,26 @@ export default {
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log("res is", res);
         const user = res.user;
         this.$store.commit("setUsername", user ? user.username : null);
+        this.$store.commit("setUserId", user ? user._id : null);
+        if (user) {
+          fetch(`/api/shares/${user.username}`)
+            .then((res) => res.json())
+            .then((res) => {
+              this.$store.commit("setShares", res.shares);
+            });
+        }
       });
 
-    // Clear alerts on page refresh
+    fetch("/api/refreets", {
+      credentials: "same-origin", // Sends express-session credentials with request
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        this.$store.commit("setRefreets", res.refreets);
+      });
+
     this.$store.state.alerts = {};
   },
 };
@@ -34,10 +55,13 @@ export default {
 <style>
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: #080808;
+  color: white;
 }
 
 body {
-  height: 100vh;
   flex-direction: column;
   display: flex;
   padding: 0;

@@ -32,15 +32,29 @@ class CircleCollection {
    * Get specific circle of user
    *
    * @param {Types.ObjectId} ownerId - The ID to get
+   * @param {Types.ObjectId} userId - The ID to get
    * @param {number} rank - circle rank to get
    * @return {Promise<HydratedDocument<Circle>> | Promise<null> } - The circle with matching ownerId, if any
    */
   static async findOne(
     ownerId: string | Types.ObjectId,
+    userId: string | Types.ObjectId,
     rank: number
   ): Promise<HydratedDocument<Circle>> {
+    console.log(
+      "userId",
+      ownerId,
+      userId,
+      rank,
+      await CircleModel.findOne({
+        ownerId,
+        userId,
+        rank,
+      })
+    );
     return await CircleModel.findOne({
       ownerId,
+      userId,
       rank,
     }).populate("userId ownerId");
   }
@@ -100,8 +114,12 @@ class CircleCollection {
    * @param {number} rank
    * @return {Promise<Boolean>} - true if the circle has been deleted, false otherwise
    */
-  static async deleteOne(userId: string, rank: number): Promise<boolean> {
-    return !!(await CircleModel.deleteOne({ userId, rank }));
+  static async deleteOne(
+    ownerId: string,
+    userId: string,
+    rank: number
+  ): Promise<boolean> {
+    return !!(await CircleModel.deleteOne({ ownerId, userId, rank }));
   }
 }
 

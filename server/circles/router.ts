@@ -51,17 +51,12 @@ router.post(
   ],
   async (req: Request, res: Response) => {
     const { userId, rank } = req.body;
-    console.log("user to add to cirlce", userId, rank);
-    console.log(
-      "user to asdfasfdsafasdfsafsadfsafsafadd to cirlce",
-      userId,
-      rank
-    );
+
     return await CircleCollection.addOne(req.session.userId, userId, rank)
       .then((circle) =>
         res.status(201).json({
           message: `Circle was created successfully!`,
-          user: util.constructCircleResponse(circle),
+          circle: util.constructCircleResponse(circle),
         })
       )
       .catch((e) =>
@@ -99,35 +94,53 @@ router.get("/:userId", async (req: Request, res: Response) => {
 });
 
 router.get(
-  "/:userId/:level",
+  "/:ownerId/:userId/:rank",
   [userValidator.isUserIdExists],
   async (req: Request, res: Response) => {
-    const { userId, level } = req.params;
+    const { userId, ownerId, rank } = req.params;
 
-    const circle = await CircleCollection.findOne(userId, parseInt(level));
+    const circle = await CircleCollection.findOne(
+      ownerId,
+      userId,
+      parseInt(rank)
+    );
 
     if (!circle) {
-      res.status(404).json({ error: "circle couldn't be found" });
+      return res.status(404).json({ error: "circle couldn't be found" });
     }
 
-    return res.status(200).json(util.constructCircleResponse(circle));
+    return res
+      .status(200)
+      .json({ circle: util.constructCircleResponse(circle) });
   }
 );
 
 router.delete(
   "/",
-  [userValidator.isUserIdExists],
   async (req: Request, res: Response, next: NextFunction) => {
-    const { userId, rank } = req.body;
+    const { circleId } = req.body;
 
-    if (!rank) {
-      return res.status(400).json({ error: "please specify circle rank" });
+    if (circleId) {
+      const circ = await CircleModel.deleteOne({ _id: circleId });
+      console.log("circl", circ);
+      return res
+        .status(200)
+        .json({ message: "user successfully removed", removed: circ });
     }
-
-    const circle = await CircleCollection.deleteOne(userId, parseInt(rank));
+    return next();
+  },
+  [userValidator.isUserIdExists, circleValidator.isValidRank],
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { ownerId, userId, rank, circleId } = req.body;
+    const circle = await CircleCollection.deleteOne(
+      ownerId,
+      userId,
+      parseInt(rank)
+    );
+    console.log("circle");
     return res
       .status(200)
-      .json({ message: `circle was successfully deleted`, circle });
+      .json({ message: `user successfully removed`, removed: circle });
   }
 );
 

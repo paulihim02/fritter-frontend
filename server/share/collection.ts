@@ -81,10 +81,20 @@ class VallyCollection {
     );
   }
 
+  static async findAllAudienceIdFromUsername(
+    username: Types.ObjectId | string
+  ): Promise<HydratedDocument<PopulatedShare>> {
+    const author = await UserCollection.findOneByUsername(username as string);
+
+    return ShareModel.find({ audienceId: author._id }).populate(
+      "freetId audienceId sharedById"
+    ) as any;
+  }
+
   /**
    * Find a share by sharedById
    *
-   * @param {string} SharedById - The SharedById associated with share we want to find
+   * @param {string} sharedById - The SharedById associated with share we want to find
    * @return {Promise<HydratedDocument<PopulatedShare>> | Promise<null> } - The share with the given SharedById, if any
    */
   static async findOneBySharedById(

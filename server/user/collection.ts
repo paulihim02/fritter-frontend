@@ -27,13 +27,6 @@ class UserCollection {
       .save()
       .then((user) => user);
 
-    // const circles = [];
-    // for (let i = 1; i <= 3; i++) {
-    //   circles.push(CircleCollection.addOne((await user)._id, i));
-    // }
-
-    // await Promise.all(circles);
-
     return user;
   }
 

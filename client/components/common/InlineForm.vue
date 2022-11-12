@@ -3,8 +3,22 @@
 
 <template>
   <form @submit.prevent="submit">
-    <input v-model="value" type="text" :placeholder="placeholder" />
-    <button type="submit">
+    <input
+      v-model="value"
+      type="text"
+      :placeholder="' ' + placeholder"
+      style="
+        width: 100%;
+        border-radius: 10px;
+        margin-right: 16px;
+        padding: 2px 16px;
+        border: 1px solid lightblue;
+      "
+    />
+    <button
+      type="submit"
+      style="border-radius: 10px; border: 1px solid lightblue"
+    >
       {{ button }}
     </button>
     <section class="alerts">

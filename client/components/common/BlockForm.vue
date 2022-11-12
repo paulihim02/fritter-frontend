@@ -2,30 +2,43 @@
 <!-- This is just an example; feel free to define any reusable components you want! -->
 
 <template>
-  <form @submit.prevent="submit">
+  <form
+    @submit.prevent="submit"
+    style="
+      border: 4px solid grey;
+      border-radius: 10px;
+      border-inline: medium solid lightblue;
+    "
+  >
     <h3>{{ title }}</h3>
     <article v-if="fields.length">
-      <div v-for="field in fields" :key="field.id">
+      <div class="rounded" v-for="field in fields" :key="field.id">
         <label :for="field.id">{{ field.label }}:</label>
         <textarea
+          class="rounded"
           v-if="field.id === 'content'"
           :name="field.id"
           :value="field.value"
           @input="field.value = $event.target.value"
+          required
         />
         <input
+          class="rounded"
           v-else
           :type="field.id === 'password' ? 'password' : 'text'"
           :name="field.id"
           :value="field.value"
           @input="field.value = $event.target.value"
+          required
         />
       </div>
     </article>
     <article v-else>
-      <p>{{ content }}</p>
+      <p>
+        {{ content }}
+      </p>
     </article>
-    <button type="submit">
+    <button type="submit" class="rounded">
       {{ title }}
     </button>
     <section class="alerts">
@@ -88,25 +101,26 @@ export default {
           throw new Error(res.error);
         }
 
-        if (this.setUsername) {
+        if (this.setUser) {
           const text = await r.text();
           const res = text ? JSON.parse(text) : { user: null };
           this.$store.commit(
             "setUsername",
             res.user ? res.user.username : null
           );
+          this.$store.commit("setUserId", res.user ? res.user._id : null);
         }
 
         if (this.refreshFreets) {
-          this.$store.commit("refreshFreets");
+          await this.$store.commit("refreshFreets");
         }
 
         if (this.refreshFollow) {
-          this.$store.commit("refreshFollow");
+          await this.$store.commit("refreshFollow");
         }
 
         if (this.callback) {
-          this.callback();
+          await this.callback();
         }
       } catch (e) {
         this.$set(this.alerts, e, "error");
@@ -127,7 +141,9 @@ form {
   margin-bottom: 14px;
   position: relative;
 }
-
+.rounded {
+  border-radius: 12px;
+}
 article > div {
   display: flex;
   flex-direction: column;
